@@ -10,7 +10,11 @@ dotenv.config();
 const app = express(); 
 
 // Middleware setup
-app.use(cors()); 
+app.use(cors({
+  origin: 'https://main--contacts-web-app-main.netlify.app',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+})); 
 app.use(bodyParser.json()); 
 
 // Set up the messages router for handling message-related requests
