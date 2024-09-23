@@ -51,6 +51,52 @@ app.post('/api/send-message', async (req, res) => {
   }
 });
 
+// Route for starting phone number verification
+app.post('/api/start-verification', async (req, res) => {
+  const { phoneNumber } = req.body; 
 
+  try {
+    const accountSid = process.env.ACC_SID; 
+    const authToken = process.env.AUTH_TOKEN; 
+    const client = new Twilio(accountSid, authToken); 
+
+    // Initiate phone number verification
+    const verification = await client.verify.v2.services(process.env.VERIFY_SERVICE_SID)
+      .verifications
+      .create({ to: phoneNumber, channel: 'sms' });
+
+    res.status(200).json({ success: true, verification });
+  } catch (error) {
+    console.error('Failed to initiate verification:', error);
+    res.status(500).json({ error: 'Failed to initiate verification' });
+  }
+});
+
+// Route for verifying the OTP code
+app.post('/api/check-verification', async (req, res) => {
+  const { phoneNumber, code } = req.body; 
+
+  try {
+    const accountSid = process.env.ACC_SID; 
+    const authToken = process.env.AUTH_TOKEN; 
+    const client = new Twilio(accountSid, authToken); 
+
+    // Verify the OTP code
+    const verificationCheck = await client.verify.v2.services(process.env.VERIFY_SERVICE_SID)
+      .verificationChecks
+      .create({ to: phoneNumber, code });
+
+    if (verificationCheck.status === 'approved') {
+      res.status(200).json({ success: true, message: 'Phone number verified successfully!' });
+    } else {
+      res.status(400).json({ success: false, message: 'Invalid OTP' });
+    }
+  } catch (error) {
+    console.error('Verification failed:', error);
+    res.status(500).json({ error: 'Failed to verify the code' });
+  }
+});
+
+// Server setup
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
